@@ -1,16 +1,26 @@
-export type Flight = {
+// Request payloads
+export type AddFlightPayload = {
   flight_no: string
   destination: string
   time_str: string
   is_emergency: boolean
-  runway?: string | null
 }
 
-export type FlightsResponse = { data: Flight[] }
+// Response models from backend
+export type ScheduledFlight = {
+  flight_number: string
+  destination: string
+  departure_time: string
+  is_emergency: boolean
+  assigned_runway_no?: number | null
+}
+
+export type FlightsResponse = { data: ScheduledFlight[] }
 export type StatusResponse = { status: string }
 export type CancelledResponse = { cancelled_list: string[] }
 
-const fallbackBase = "http://localhost:8000"
+// Default to Next.js rewrite prefix to avoid CORS in dev
+const fallbackBase = "/api"
 
 export const API_BASE_URL =
   (typeof window !== "undefined" && (window as any).__API_BASE_URL__) ||
@@ -33,13 +43,9 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
-export const getFlights = () => apiFetch<FlightsResponse>("/flights/list_flights")
-export const addFlight = (data: {
-  flight_no: string
-  destination: string
-  time_str: string
-  is_emergency: boolean
-}) =>
+export const getFlights = () => apiFetch<FlightsResponse>("/flights/list_scheduled_flights")
+
+export const addFlight = (data: AddFlightPayload) =>
   apiFetch<StatusResponse>("/flights/add_flight", {
     method: "POST",
     body: JSON.stringify(data),
