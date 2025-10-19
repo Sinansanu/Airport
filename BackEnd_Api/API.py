@@ -1,11 +1,21 @@
 
-from AirportManagementSystem import Managmement_System
-from fastapi import FastAPI,HTTPException
+from AirportManagementSystem import AirportManagementSystem
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from BackEnd_Api.DataModels import *
 
-management_system = Managmement_System()
+management_system = AirportManagementSystem()
 management_system._add_sample_routes()
 app = FastAPI()
+
+# Allow CORS for development and local Next.js
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.post('/flights/add_flight')
@@ -26,10 +36,10 @@ def cancel(data:cancel_flight):
 @app.get('/flights/cancelled_list')
 def get_cancelled_list():
     try:
-        lst = management_system.canceled_flights
-        return {'cancelled_list':lst}
+        lst = [f.flight_number for f in management_system.canceled_flights]
+        return {'cancelled_list': lst}
     except Exception as e:
-        raise HTTPException(status_code=500,detail=f'Could not retrive cancelled flights {str(e)}')
+        raise HTTPException(status_code=500, detail=f'Could not retrive cancelled flights {str(e)}')
 
 @app.post('/route/add_route')
 def add_route(data:route_add):
@@ -53,7 +63,17 @@ def findroute(data:route_find_data):
 def get_flights():
     try:
         flights = management_system.get_scheduled_flights()
-        flight_data = [vars(f) for f in flights]
+        flight_data = [
+            {
+                'flight_number': f.flight_number,
+                'destination': f.destination,
+                'departure_time': f.departure_time.isoformat(),
+                'is_emergency': f.is_emergency,
+                'assigned_runway_no': f.assigned_runway_no,
+                'status': f.status,
+            }
+            for f in flights
+        ]
         return {'data': flight_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error fetching flights: {str(e)}')

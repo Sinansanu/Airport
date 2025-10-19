@@ -4,7 +4,7 @@ import { mutate } from "swr"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-const flightsKey = "/flights/list_flights"
+const flightsKey = "/flights/list_scheduled_flights"
 
 export function RunwaysPanel() {
   async function onAssign() {
